@@ -1,4 +1,3 @@
-// routes/userRoutes.js
 
 const express = require('express');
 const router = express.Router();
@@ -31,20 +30,18 @@ router.post(
   userController.login
 );
 
-// Protected profile route
 router.get('/profile', authenticateToken, userController.getProfile);
 
-// Update profile route (make sure the method is defined in userController)
 router.put(
   '/profile',
-  authenticateToken, // Protect the route
+  authenticateToken, 
   [
     body('first_name').optional().notEmpty().withMessage('First name cannot be empty'),
     body('last_name').optional().notEmpty().withMessage('Last name cannot be empty'),
     body('phone_number').optional().isLength({ max: 15 }).withMessage('Phone number must not exceed 15 characters'),
     body('address').optional().isString().withMessage('Address must be a string'),
   ],
-  userController.updateProfile // Ensure this method is defined in userController
+  userController.updateProfile 
 );
 
 module.exports = router;

@@ -1,4 +1,3 @@
-// middleware/authMiddleware.js
 
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -13,9 +12,8 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      console.error('Token verification error:', err); // Log the error for debugging
+      console.error('Token verification error:', err); 
 
-      // Check for specific token errors
       if (err.name === 'TokenExpiredError') {
         return res.status(403).json({ message: 'Token expired. Please log in again.' });
       }
@@ -25,8 +23,7 @@ const authenticateToken = (req, res, next) => {
       return res.status(403).json({ message: 'Could not authenticate token.' });
     }
 
-    // If the token is valid, proceed
-    req.user = user; // Attach the user info to the request object
+    req.user = user; 
     next();
   });
 };

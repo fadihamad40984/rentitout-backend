@@ -1,4 +1,3 @@
-// controllers/userController.js
 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -20,7 +19,7 @@ const register = (req, res) => {
     password,
     phone_number,
     address,
-    role, // Optional: can be set to 'user' by default
+    role, 
   } = req.body;
 
   // Check if user already exists
@@ -34,12 +33,10 @@ const register = (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Set default values if not provided
     const userRole = role || 'user';
-    const verification_status = 1; // Automatically set to verified
-    const rating = null; // Initially no rating
+    const verification_status = 1; 
+    const rating = null; 
 
-    // Hash password before saving
     const hashedPassword = bcrypt.hashSync(password, 10);
 
     // Create new user
@@ -92,7 +89,7 @@ const login = (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Check if user is verified (optional)
+    // Check if user is verified
     if (!user.verification_status) {
       return res.status(403).json({ message: 'User is not verified.' });
     }
@@ -105,7 +102,7 @@ const login = (req, res) => {
 
 // Get user profile
 const getProfile = (req, res) => {
-  const userId = req.user.id; // Extract user ID from JWT
+  const userId = req.user.id; 
 
   userModel.findUserById(userId, (err, user) => {
     if (err) {
@@ -117,23 +114,20 @@ const getProfile = (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Exclude sensitive information like password
     const { password, ...userData } = user;
     res.json(userData);
   });
 };
 const updateProfile = (req, res) => {
-  const userId = req.user.id; // Get user ID from JWT
+  const userId = req.user.id; 
   const { first_name, last_name, phone_number, address } = req.body;
 
-  // Prepare update object
   const updateData = {};
   if (first_name) updateData.first_name = first_name;
   if (last_name) updateData.last_name = last_name;
   if (phone_number) updateData.phone_number = phone_number;
   if (address) updateData.address = address;
 
-  // Update user in the database
   userModel.updateUser(userId, updateData, (err, result) => {
     if (err) {
       console.error('Error updating user profile:', err);
@@ -147,5 +141,5 @@ module.exports = {
   register,
   login,
   getProfile,
-  updateProfile, // Make sure to export this
+  updateProfile, 
 };

@@ -1,4 +1,3 @@
-// models/userModel.js
 
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
@@ -91,5 +90,5 @@ module.exports = {
   createUser,
   findUserByEmail,
   findUserById,
-  updateUser, // Export the new method
+  updateUser, 
 };
