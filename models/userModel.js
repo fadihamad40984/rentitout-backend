@@ -8,15 +8,13 @@ const createUser = (userData, callback) => {
     first_name,
     last_name,
     email,
-    password,
+    password, 
     phone_number,
     address,
     role,
     verification_status,
     rating,
   } = userData;
-  
-  const hashedPassword = bcrypt.hashSync(password, 10);
 
   const query = `
     INSERT INTO users 
@@ -31,7 +29,7 @@ const createUser = (userData, callback) => {
       first_name,
       last_name,
       email,
-      hashedPassword,
+      password,  
       phone_number || null,
       address || null,
       role,
