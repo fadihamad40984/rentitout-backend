@@ -1,40 +1,44 @@
 const db = require('../config/db');
-const bcrypt = require('bcryptjs');
 
-// Create new item
-const createItem = (itemData, callback) => {
+const createItem = (itemData) => {
   const { user_id, category, name, description, price, availability } = itemData;
   const query = `
     INSERT INTO Items (user_id, category, name, description, price, availability)
     VALUES (?, ?, ?, ?, ?, ?)
   `;
 
-  db.query(query, [user_id, category, name, description, price, availability], (err, result) => {
-    if (err) return callback(err);
-    callback(null, result);
+  return new Promise((resolve, reject) => {
+    db.query(query, [user_id, category, name, description, price, availability], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
   });
 };
 
-// Get all items
-const getAllItems = (callback) => {
+const getAllItems = () => {
   const query = 'SELECT * FROM Items WHERE availability = TRUE';
-  db.query(query, (err, results) => {
-    if (err) return callback(err);
-    callback(null, results);
+  
+  return new Promise((resolve, reject) => {
+    db.query(query, (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
   });
 };
 
-// Get item by ID
-const getItemById = (id, callback) => {
+const getItemById = (id) => {
   const query = 'SELECT * FROM Items WHERE id = ?';
-  db.query(query, [id], (err, results) => {
-    if (err) return callback(err);
-    callback(null, results[0]);
+  
+  return new Promise((resolve, reject) => {
+    db.query(query, [id], (err, results) => {
+      if (err) return reject(err);
+      if (results.length === 0) return reject(new Error('Item not found'));
+      resolve(results[0]);
+    });
   });
 };
 
-// Update item
-const updateItem = (id, updateData, callback) => {
+const updateItem = (id, updateData) => {
   const query = `
     UPDATE Items 
     SET 
@@ -47,25 +51,29 @@ const updateItem = (id, updateData, callback) => {
     WHERE id = ?
   `;
 
-  db.query(query, [
-    updateData.category,
-    updateData.name,
-    updateData.description,
-    updateData.price,
-    updateData.availability,
-    id,
-  ], (err, result) => {
-    if (err) return callback(err);
-    callback(null, result);
+  return new Promise((resolve, reject) => {
+    db.query(query, [
+      updateData.category,
+      updateData.name,
+      updateData.description,
+      updateData.price,
+      updateData.availability,
+      id,
+    ], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
   });
 };
 
-// Delete item
-const deleteItem = (id, callback) => {
+const deleteItem = (id) => {
   const query = 'DELETE FROM Items WHERE id = ?';
-  db.query(query, [id], (err, result) => {
-    if (err) return callback(err);
-    callback(null, result);
+
+  return new Promise((resolve, reject) => {
+    db.query(query, [id], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
   });
 };
 

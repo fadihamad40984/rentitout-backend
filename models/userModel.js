@@ -2,7 +2,6 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 
-// Create user
 const createUser = (userData, callback) => {
   const {
     first_name,
@@ -14,14 +13,14 @@ const createUser = (userData, callback) => {
     role,
     verification_status,
     rating,
+    verification_code,
   } = userData;
 
   const query = `
     INSERT INTO users 
-      (first_name, last_name, email, password, phone_number, address, role, verification_status, rating) 
+      (first_name, last_name, email, password, phone_number, address, role, verification_status, rating , verification_code) 
     VALUES 
-      (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+      (?, ?, ?, ?, ?, ?, ?, ?, ? ,?)`;
   
   db.query(
     query,
@@ -35,6 +34,7 @@ const createUser = (userData, callback) => {
       role,
       verification_status,
       rating,
+      verification_code,
     ],
     (err, result) => {
       if (err) return callback(err);
@@ -43,7 +43,16 @@ const createUser = (userData, callback) => {
   );
 };
 
-// Find user by email
+const verifyUserByCode = (email, verification_code, callback) => {
+  const query = `UPDATE users SET verification_status = 1 WHERE email = ? AND verification_code = ?`;
+
+  db.query(query, [email, verification_code], (err, result) => {
+      if (err) return callback(err);
+      callback(null, result);
+  });
+};
+
+
 const findUserByEmail = (email, callback) => {
   const query = 'SELECT * FROM users WHERE email = ?';
   db.query(query, [email], (err, results) => {
@@ -86,6 +95,7 @@ const updateUser = (userId, updateData, callback) => {
 
 module.exports = {
   createUser,
+  verifyUserByCode,
   findUserByEmail,
   findUserById,
   updateUser, 

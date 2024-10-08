@@ -2,11 +2,12 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const userModel = require('../models/userModel');
-const { validationResult } = require('express-validator');
+const {body, validationResult } = require('express-validator');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 require('dotenv').config();
 
-// Register a new user
-const register = (req, res) => {
+const register = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -19,10 +20,9 @@ const register = (req, res) => {
     password,
     phone_number,
     address,
-    role, 
+    role,
   } = req.body;
 
-  // Check if user already exists
   userModel.findUserByEmail(email, (err, user) => {
     if (err) {
       console.error('Error finding user:', err);
@@ -34,10 +34,8 @@ const register = (req, res) => {
     }
 
     const userRole = role || 'user';
-    const verification_status = 1; 
-    const rating = null; 
-
     const hashedPassword = bcrypt.hashSync(password, 10);
+    const verification_code = crypto.randomBytes(16).toString('hex'); 
 
     // Create new user
     userModel.createUser(
@@ -49,21 +47,72 @@ const register = (req, res) => {
         phone_number,
         address,
         role: userRole,
-        verification_status,
-        rating,
+        verification_status: 0, 
+        verification_code, 
       },
       (err, result) => {
         if (err) {
           console.error('Error creating user:', err);
           return res.status(500).json({ message: 'Error creating user' });
         }
-        res.status(201).json({ message: 'User registered successfully' });
+
+        sendVerificationEmail(email, verification_code);
+
+        res.status(201).json({ message: 'User registered successfully. Please check your email to verify your account.' });
       }
     );
   });
 };
 
-// Login user
+const sendVerificationEmail = (email, verification_code) => {
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, 
+    auth: {
+      user: 'fadi3business@gmail.com', 
+      pass: 'dnbc utdp kxip nslb', 
+    },
+  });
+
+  const mailOptions = {
+    from: 'fadi3business@gmail.com',
+    to: email,
+    subject: 'Email Verification',
+    text: `Your verification code is: ${verification_code}. Please use this code to verify your email address.`,
+};
+
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error('Error sending email:', error);
+    } else {
+      console.log('Verification email sent:', info.response);
+    }
+  });
+};
+
+
+
+const verifyEmail = (req, res) => {
+  const { email, verification_code } = req.body; 
+
+  userModel.verifyUserByCode(email, verification_code, (err, result) => {
+    if (err) {
+      console.error('Error verifying user:', err);
+      return res.status(500).json({ message: 'Server error during verification' });
+    }
+
+    console.log('Verification code sent to user:', verification_code);
+
+
+    if (result.affectedRows === 0) {
+      return res.status(400).json({ message: 'Invalid verification code' });
+    }
+
+    res.status(200).json({ message: 'Email verified successfully!' });
+  });
+};
 const login = (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -72,7 +121,6 @@ const login = (req, res) => {
 
   const { email, password } = req.body;
 
-  // Find user by email
   userModel.findUserByEmail(email, (err, user) => {
     if (err) {
       console.error('Error finding user:', err);
@@ -83,24 +131,20 @@ const login = (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check password
     const isMatch = bcrypt.compareSync(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Check if user is verified
     if (!user.verification_status) {
       return res.status(403).json({ message: 'User is not verified.' });
     }
 
-    // Create JWT token
     const token = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
   });
 };
 
-// Get user profile
 const getProfile = (req, res) => {
   const userId = req.user.id; 
 
@@ -139,6 +183,7 @@ const updateProfile = (req, res) => {
 
 module.exports = {
   register,
+  verifyEmail,
   login,
   getProfile,
   updateProfile, 

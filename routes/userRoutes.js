@@ -5,7 +5,6 @@ const userController = require('../controllers/userController');
 const authenticateToken = require('../middleware/authMiddleware');
 const { body } = require('express-validator');
 
-// Register user with validation
 router.post(
   '/register',
   [
@@ -20,7 +19,10 @@ router.post(
   userController.register
 );
 
-// Login user with validation
+
+router.post('/verify-email', userController.verifyEmail);
+
+
 router.post(
   '/login',
   [

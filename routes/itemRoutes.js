@@ -4,7 +4,6 @@ const itemController = require('../controllers/itemController');
 const authenticateToken = require('../middleware/authMiddleware');
 const { body } = require('express-validator');
 
-// Create an item
 router.post(
   '/create',
   authenticateToken,
@@ -18,13 +17,10 @@ router.post(
   itemController.createItem
 );
 
-// Get all items
 router.get('/', authenticateToken, itemController.getAllItems);
 
-// Get item by ID
 router.get('/:id', authenticateToken, itemController.getItemById);
 
-// Update an item
 router.put(
   '/:id',
   authenticateToken,
@@ -38,7 +34,6 @@ router.put(
   itemController.updateItem
 );
 
-// Delete an item
 router.delete('/:id', authenticateToken, itemController.deleteItem);
 
 module.exports = router;
