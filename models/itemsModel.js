@@ -27,12 +27,13 @@ const getAllItems = () => {
 };
 
 const getItemById = (id) => {
+  
   const query = 'SELECT * FROM Items WHERE id = ?';
   
   return new Promise((resolve, reject) => {
     db.query(query, [id], (err, results) => {
       if (err) return reject(err);
-      if (results.length === 0) return reject(new Error('Item not found'));
+      if (results.length === 0) return reject(new Error('Item not foundd'));
       resolve(results[0]);
     });
   });
