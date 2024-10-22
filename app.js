@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const userRoutes = require('./routes/userRoutes');
 const itemRoutes = require('./routes/itemRoutes');
 const rentalRoutes = require('./routes/rentalRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 //************ */
 const LogisticsRoutes =require('./routes/LogisticsRoutes');
@@ -21,6 +22,13 @@ app.use('/api/rentals', rentalRoutes);
 //*********malik*********** */
 app.use('/api/Logistics',LogisticsRoutes)
 app.use('/api/transaction',transactionRoutes)
+
+//***********shaheen *********/
+
+//SET REVIEW
+app.use('/api/item/review', reviewRoutes);
+
+
 
 
 
