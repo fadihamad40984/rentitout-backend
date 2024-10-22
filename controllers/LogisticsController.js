@@ -1,175 +1,154 @@
 const rentalModel = require('../models/rentalModel');
 const LogisticsModel = require('../models/LogisticsModel');
-const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
+const APIKey = 'af4a0f8b8a74428d84f5ecdbf00285c6';
+const axios = require('axios');
 
-exports.MakePickup =async(req,res)=>{
 
-    const {rental_lat,rental_lng} = req.body
-    const rental_id = req.params.id
 
-    if(!rental_lat || !rental_lng){
-        return res.status(400).json({ error: 'Client are required' });
+
+function haversineDistance(lat1, lng1, lat2, lng2) {
+    const toRadians = degree => degree * (Math.PI / 180);
+
+    const R = 6371; // Radius of Earth in kilometers
+    const dLat = toRadians(lat2 - lat1);
+    const dLng = toRadians(lng2 - lng1);
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    const distance = R * c; // Distance in kilometers
+    console.log(distance)
+    return distance;
+}
+
+
+
+
+
+exports.MakePickup = async (req, res) => {
+    const { rental_lat, rental_lng } = req.body;
+    const query = 'mall';
+    const radius = 5000; // Fixed typo from radiuss to radius
+    const rental_id = req.params.id;
+
+    if (!rental_lat || !rental_lng) {
+        return res.status(400).json({ error: 'Latitude and Longitude are required.' });
     }
-    if(!rental_id){
-        return res.status(400).json({ error: 'rental ID is required' });
+    if (!rental_id) {
+        return res.status(400).json({ error: 'Rental ID is required.' });
     }
 
-    try{
+    try {
+        const rental = await LogisticsModel.GetRentalById(rental_id);
+        if (!rental.length) return res.status(404).json({ message: 'Rental not found' });
+        if (rental[0].rental_method !== 'pickup') {
+            return res.status(404).json({ message: 'Rental method not a pickup method' });
+        }
+        const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${rental_lat},${rental_lng}&radius=${radius}&keyword=${query}&key=${APIKey}`;
 
-        const rental = await LogisticsModel.GetRentalById(rental_id)
-        if (!rental) return res.status(404).json({ message: 'rental not found' });
-        if(rental.rental_method !='pickup'){
-            return res.status(404).json({ message: 'rental method not a pickup method' });
-        }else{
-
-            try {
-                // Fetch nearby pickup locations using Google Places API
-                const { data } = await axios.get('https://maps.googleapis.com/maps/api/place/nearbysearch/json', {
-                    params: {
-                        location: `${rental_lat},${rental_lng}`,
-                        radius: 5000, // Search within 5 km
-                        type: 'store', // You can change this to other place types
-                        key: GOOGLE_MAPS_API_KEY
-                    }
-                });
-        
-                
-                if (data.results.length === 0) {
-                    return res.status(404).send('No nearby pickup locations found');
-                }
-        
-                // Example: Automatically select the first nearby location (you could change this based on user input)
-                const selectedLocation = data.results[0];
-                const pickupPlace=selectedLocation.name+","+selectedLocation.vicinity
-                const deliveryCost =0;
-                const logisticData={
-                    rental_id,
-                    rental_lat,
-                    rental_lng,
-                    pickupPlace,
-                    deliveryCost
-                    
-                }
-                const result = await LogisticsModel.createLogistice(logisticData)
-
-        
-                // Create a response with the pickup method and the selected pickup address
-                res.json({
-                    pickupMethod: rental.method,
-                    pickupAddress: selectedLocation.vicinity, // Address of the selected pickup location
-                    pickupLocation: {
-                        name: selectedLocation.name,
-                        address: selectedLocation.vicinity,
-                        coordinates: {
-                            lat: selectedLocation.geometry.location.lat,
-                            lng: selectedLocation.geometry.location.lng
-                        }
-                    },
-                    result:result
-                });
-            } catch (error) {
-                console.error(error); // Log the error for debugging
-                res.status(500).send('Error fetching nearby pickup locations');
+        try {
+            const response = await axios.get(url);
+            console.log("hello")
+            if (response.data.results.length === 0) {
+                return res.status(404).json({ message: 'No nearby pickup locations found' });
             }
 
+            const firstPlace = response.data.results[0]; // Use the first place from the response
+            const pickupPlace = `${firstPlace.name}, ${firstPlace.location.address}`;
+            console.log(pickupPlace);
+            const deliveryCost = 0;
 
+            const logisticData = {
+                rental_id,
+                rental_lat,
+                rental_lng,
+                pickupPlace,
+                deliveryCost
+            };
 
-        }//else
+            const result = await LogisticsModel.createLogistice(logisticData);
 
-
-    }catch(err){
-        console.error(err);
+            res.json({
+                pickupMethod: rental[0].rental_method,
+                pickupAddress: firstPlace.location.address,
+                pickupLocation: {
+                    name: firstPlace.name,
+                    address: firstPlace.location.address,
+                    coordinates: {
+                        lat: firstPlace.location.lat,
+                        lng: firstPlace.location.lng
+                    }
+                },
+                result: result
+            });
+        } catch (error) {
+            console.error('Error fetching nearby pickup locations:', error);
+            res.status(500).json({ error: 'Error fetching nearby pickup locations' });
+        }
+    } catch (err) {
+        console.error('Server error:', err);
         res.status(500).json({ message: 'Server error', error: err.message });
     }
-
 };
 
 
-exports.MakeDelivry=async(req,res)=>{
+exports.MakeDelivery = async (req, res) => {
+    const { renter_lat, renter_lng } = req.body; // Fixed typo from rentar_lat to renter_lat
+    const rental_id = req.params.id;
+    console.log(renter_lat)
 
-    const {rentar_lat,rentar_lng} = req.body
-    const rental_id = req.params.id
-    if(!rentar_lat || !rentar_lng){
-        return res.status(400).json({ error: 'Client are required' });
+    if (!renter_lat || !renter_lng) {
+        return res.status(400).json({ error: 'Client lat and lng are required' });
     }
-    if(!rental_id){
-        return res.status(400).json({ error: 'rental ID is required' });
+    if (!rental_id) {
+        return res.status(400).json({ error: 'Rental ID is required' });
     }
 
-    try{
+    try {
+        const rental = await LogisticsModel.GetRentalById(rental_id);
+        if (!rental.length) return res.status(404).json({ message: 'Rental not found' });
+        if (rental[0].rental_method !== 'delivery') {
+            return res.status(404).json({ message: 'Rental method not a delivery method' });
+        }
 
-        const rental = await LogisticsModel.GetRentalById(rental_id)
-        if (!rental) return res.status(404).json({ message: 'rental not found' });
-        if(rental.rental_method !='delivry'){
-            return res.status(404).json({ message: 'rental method not a delivry method' });
-        }else{
+        const companyCoordinates = await LogisticsModel.GetCompany(1);
+        const company_lat = companyCoordinates[0].company_lat;
+        const company_lng = companyCoordinates[0].company_lng;
 
-            const company_cordinate =await LogisticsModel.GetCompany(1)
-            const company_lat=company_cordinate.company_lat
-            const company_lng = company_cordinate.company_lng
+        try {
+            const distanceKm = haversineDistance(company_lat, company_lng, renter_lat, renter_lng);
+            const baseCost = 5; // Base cost for delivery
+            const costPerKm = 1.5; // Cost per kilometer
+            const deliveryCost = baseCost + (costPerKm * distanceKm);
+            const pickupPlace = 'not_pickup';
 
-            try {
-                // Call the Google Distance Matrix API
-                const response = await axios.get(
-                  `https://maps.googleapis.com/maps/api/distancematrix/json`,
-                  {
-                    params: {
-                      origins: `${company_lat},${company_lng}`, // Store location
-                      destinations: `${rentar_lat},${rentar_lng}`, // Client location
-                      key: GOOGLE_MAPS_API_KEY
-                    }
-                  }
-                );
-            
-                // Extract distance from the API response
-                const distanceInfo = response.data.rows[0].elements[0];
-                if (distanceInfo.status === "ZERO_RESULTS") {
-                  return res.status(404).json({ error: "No route found between store and client" });
-                }
-            
-                const distance = distanceInfo.distance.value; // distance in meters
-                const distanceKm = distance / 1000; // convert to kilometers
-            
-                //cost: my role
-                const baseCost = 5; // Base cost for delivery
-                const costPerKm = 1.5; // Cost per kilometer
-                const deliveryCost = baseCost + (costPerKm * distanceKm);
-                const pickupPlace ='not_pickup'
+            const logisticData = {
+                rental_id,
+                renter_lat,
+                renter_lng,
+                pickupPlace,
+                deliveryCost
+            };
 
-                const logisticData={
-                    rental_id,
-                    rentar_lat,
-                    rentar_lng,
-                    pickupPlace,
-                    deliveryCost
+            const result = await LogisticsModel.createLogistice(logisticData);
 
-                }
-
-                const result = await LogisticsModel.createLogistice(logisticData)
-
-
-            
-                // Return the delivery cost
-                res.json({
-                  distance_km: distanceKm,
-                  delivery_cost: deliveryCost,
-                  result:result
-                });
-              } catch (error) {
-                console.error('Error calculating delivery cost:', error);
-                res.status(500).json({ error: 'Error calculating delivery cost' });
-              }
-
-        }//else
-
-
-    }catch(err){
-        console.error(err);
+            res.json({
+                distance_km: distanceKm,
+                delivery_cost: deliveryCost,
+                result: result
+            });
+        } catch (error) {
+            console.error('Error calculating delivery cost:', error);
+            res.status(500).json({ error: 'Error calculating delivery cost' });
+        }
+    } catch (err) {
+        console.error('Server error:', err);
         res.status(500).json({ message: 'Server error', error: err.message });
     }
-
-
-
 };
 
 

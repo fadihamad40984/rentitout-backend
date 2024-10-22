@@ -7,7 +7,7 @@ const { body } = require('express-validator');
 
 // make transaction
 router.post('/process/:rental_id',
-    /*authenticateToken,*/
+    authenticateToken,
     transactionControllers.processTarnsaction
 );
 
@@ -20,7 +20,7 @@ router.get('/process',
 
 //GET one transaction according to user id
 router.get('/process/:user_id',
-    /*authenticateToken,*/
+    authenticateToken,
     transactionControllers.getOneUserTransaction
 
 );
