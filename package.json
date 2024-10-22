@@ -1,3 +1,4 @@
+
 {
   "name": "rentitout-backend",
   "version": "1.0.0",
@@ -8,8 +9,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "description": "",
   "dependencies": {
     "argon2": "^0.41.1",
+    "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
     "dotenv": "^16.4.5",
@@ -22,3 +25,4 @@
   "devDependencies": {},
   "description": ""
 }
+

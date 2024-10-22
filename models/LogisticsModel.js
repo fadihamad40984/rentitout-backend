@@ -14,17 +14,17 @@ exports.GetRentalById = (rental_id) => {
 
 exports.createLogistice=(logisticData)=>{
 
-    const {rental_id,rental_lat,rental_lng,pickupPlace,deliveryCost}=logisticData
+    const {rental_id,renter_lat,renter_lng,pickupPlace,deliveryCost}=logisticData
 
-    const query = `INSERT INTO rentals 
+    const query = `INSERT INTO logistictable 
                     (rental_id, renter_lat, renter_lng, renter_place, delivery_cost) 
                     VALUES (?, ?, ?, ?, ?)`;
 
     return new Promise((resolve, reject) => {
         db.query(query, [
             rental_id,
-            rental_lat,
-            rental_lng,
+            renter_lat,
+            renter_lng,
             pickupPlace,
             deliveryCost
         ], (err, result) => {
