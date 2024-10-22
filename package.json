@@ -8,7 +8,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "argon2": "^0.41.1",
     "bcryptjs": "^2.4.3",
@@ -19,5 +18,7 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.3",
     "nodemailer": "^6.9.15"
-  }
+  },
+  "devDependencies": {},
+  "description": ""
 }
