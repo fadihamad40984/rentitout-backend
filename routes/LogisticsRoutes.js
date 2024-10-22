@@ -22,7 +22,7 @@ router.post('/delivry/:id',
         body('renter_lat').notEmpty().withMessage('renter lat is required'),
         body('renter_lng').notEmpty().withMessage('renter lng is required')
     ],
-    LogisticsControllers.MakeDelivry
+    LogisticsControllers.MakeDelivery
 
 );
 
