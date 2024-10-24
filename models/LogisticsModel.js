@@ -98,3 +98,35 @@ exports.GetOneDelivry=(delivry_id)=>{
     });
 
 }
+
+
+exports.AddnewLocation=(lat,lng)=>{
+    const query = `INSERT INTO coordinates (lat ,lng) VALUES (?,?)`
+
+    return new Promise((resolve, reject) => {
+        db.query(query, [
+            lat,
+            lng,
+        ], (err, result) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(result);
+        });
+    });
+}
+
+
+exports.GetAllLocation =()=>{
+
+    const query =`SELECT * FROM coordinates`
+    return new Promise((resolve, reject) => {
+        db.query(query, (err, result) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(result);
+        });
+    });
+
+}

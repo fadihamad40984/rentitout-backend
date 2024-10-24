@@ -4,6 +4,30 @@ const LogisticsControllers =require('../controllers/LogisticsController');
 const authenticateToken = require('../middleware/authMiddleware');
 const { body } = require('express-validator');
 
+
+
+// last feature 4 work
+
+// Admin add pickup postaion
+
+router.post('/addlocation',
+    // authenticateToken,
+    [
+        body('lat').notEmpty().withMessage('lat is required'),
+        body('lng').notEmpty().withMessage('lng is required')
+    ],
+    LogisticsControllers.AddnewLocation
+)
+
+
+router.get('/getalllocations',
+    // authenticateToken,
+    LogisticsControllers.GetAllLocation
+)
+
+
+
+
 //add pickuplocation if method of rental is pickup
 router.post('/pickup/:id',
     authenticateToken,

@@ -6,6 +6,48 @@ const axios = require('axios');
 
 
 
+exports.AddnewLocation= async(req,res)=>{
+
+    const{lat ,lng}= req.body
+    if (!lat || !lng) {
+        return res.status(400).json({ error: 'Latitude and Longitude are required.' });
+    }
+    try{
+        const result= await LogisticsModel.AddnewLocation(lat,lng)
+        return res.status(201).json({message: 'location created successfully'});
+        
+    }catch(err){
+        console.error('Server error:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+
+    }
+
+
+
+}
+
+exports.GetAllLocation = async(req,res)=>{
+
+    try{
+
+        const locations = await LogisticsModel.GetAllLocation();
+        if (locations.length === 0) {
+            return res.status(404).json({ message: 'No pickup location found' });
+        }
+
+        res.status(200).json({data:locations});
+
+
+    }catch(err){
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+
+    
+
+}
+
+
 function haversineDistance(lat1, lng1, lat2, lng2) {
     const toRadians = degree => degree * (Math.PI / 180);
 
