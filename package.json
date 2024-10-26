@@ -1,3 +1,4 @@
+
 {
   "name": "rentitout-backend",
   "version": "1.0.0",
@@ -11,6 +12,7 @@
   "description": "",
   "dependencies": {
     "argon2": "^0.41.1",
+    "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
     "dotenv": "^16.4.5",
@@ -19,5 +21,8 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.3",
     "nodemailer": "^6.9.15"
-  }
+  },
+  "devDependencies": {},
+  "description": ""
 }
+
