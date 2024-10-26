@@ -1,6 +1,4 @@
-
 const db = require('../config/db');
-const bcrypt = require('bcryptjs');
 
 const createUser = (userData, callback) => {
   const {
@@ -9,18 +7,16 @@ const createUser = (userData, callback) => {
     email,
     password, 
     phone_number,
-    address,
     role,
     verification_status,
-    rating,
-    verification_code,
+    verification_code
   } = userData;
 
   const query = `
     INSERT INTO users 
-      (first_name, last_name, email, password, phone_number, address, role, verification_status, rating , verification_code) 
+      (first_name, last_name, email, password, phone_number, role, verification_status, verification_code) 
     VALUES 
-      (?, ?, ?, ?, ?, ?, ?, ?, ? ,?)`;
+      (?, ?, ?, ?, ?, ?, ?, ?)`;
   
   db.query(
     query,
@@ -30,11 +26,9 @@ const createUser = (userData, callback) => {
       email,
       password,  
       phone_number || null,
-      address || null,
       role,
       verification_status,
-      rating,
-      verification_code,
+      verification_code
     ],
     (err, result) => {
       if (err) return callback(err);
@@ -52,12 +46,23 @@ const verifyUserByCode = (email, verification_code, callback) => {
   });
 };
 
-
 const findUserByEmail = (email, callback) => {
   const query = 'SELECT * FROM users WHERE email = ?';
   db.query(query, [email], (err, results) => {
     if (err) return callback(err);
     callback(null, results[0]);
+  });
+};
+
+const isVerified = (email, callback) => {
+  const query = 'SELECT verification_status FROM users WHERE email = ?';
+  db.query(query, [email], (err, results) => {
+    if (err) return callback(err);
+    if (results.length > 0 && results[0].verification_status === 1) {
+      return callback(null, true); 
+    } else {
+      return callback(null, false); 
+    }
   });
 };
 
@@ -75,9 +80,7 @@ const updateUser = (userId, updateData, callback) => {
     SET 
       first_name = COALESCE(?, first_name),
       last_name = COALESCE(?, last_name),
-      phone_number = COALESCE(?, phone_number),
-      address = COALESCE(?, address),
-      updated_at = CURRENT_TIMESTAMP
+      phone_number = COALESCE(?, phone_number)
     WHERE user_id = ?
   `;
 
@@ -85,7 +88,6 @@ const updateUser = (userId, updateData, callback) => {
     updateData.first_name,
     updateData.last_name,
     updateData.phone_number,
-    updateData.address,
     userId
   ], (err, result) => {
     if (err) return callback(err);
@@ -97,6 +99,7 @@ module.exports = {
   createUser,
   verifyUserByCode,
   findUserByEmail,
+  isVerified,  
   findUserById,
-  updateUser, 
+  updateUser
 };

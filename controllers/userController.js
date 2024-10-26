@@ -1,10 +1,8 @@
-
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const userModel = require('../models/userModel');
-const {body, validationResult } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
-const crypto = require('crypto');
 require('dotenv').config();
 
 const register = async (req, res) => {
@@ -19,8 +17,7 @@ const register = async (req, res) => {
     email,
     password,
     phone_number,
-    address,
-    role,
+    role
   } = req.body;
 
   userModel.findUserByEmail(email, (err, user) => {
@@ -35,9 +32,8 @@ const register = async (req, res) => {
 
     const userRole = role || 'user';
     const hashedPassword = bcrypt.hashSync(password, 10);
-    const verification_code = crypto.randomBytes(16).toString('hex'); 
+    const verification_code = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Create new user
     userModel.createUser(
       {
         first_name,
@@ -45,10 +41,9 @@ const register = async (req, res) => {
         email,
         password: hashedPassword,
         phone_number,
-        address,
         role: userRole,
         verification_status: 0, 
-        verification_code, 
+        verification_code 
       },
       (err, result) => {
         if (err) {
@@ -80,8 +75,7 @@ const sendVerificationEmail = (email, verification_code) => {
     to: email,
     subject: 'Email Verification',
     text: `Your verification code is: ${verification_code}. Please use this code to verify your email address.`,
-};
-
+  };
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
@@ -92,8 +86,6 @@ const sendVerificationEmail = (email, verification_code) => {
   });
 };
 
-
-
 const verifyEmail = (req, res) => {
   const { email, verification_code } = req.body; 
 
@@ -103,9 +95,6 @@ const verifyEmail = (req, res) => {
       return res.status(500).json({ message: 'Server error during verification' });
     }
 
-    console.log('Verification code sent to user:', verification_code);
-
-
     if (result.affectedRows === 0) {
       return res.status(400).json({ message: 'Invalid verification code' });
     }
@@ -113,6 +102,7 @@ const verifyEmail = (req, res) => {
     res.status(200).json({ message: 'Email verified successfully!' });
   });
 };
+
 const login = (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -140,7 +130,12 @@ const login = (req, res) => {
       return res.status(403).json({ message: 'User is not verified.' });
     }
 
-    const token = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    //const token = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(
+      { id: user.user_id, role: user.role }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1h' }
+    );
     res.json({ token });
   });
 };
@@ -158,19 +153,20 @@ const getProfile = (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const { password, ...userData } = user;
-    res.json(userData);
+    const { first_name, last_name, email, phone_number, role } = user;
+    res.json({ first_name, last_name, email, phone_number, role });
   });
 };
+
 const updateProfile = (req, res) => {
   const userId = req.user.id; 
-  const { first_name, last_name, phone_number, address } = req.body;
+  const { first_name, last_name, phone_number } = req.body;
 
   const updateData = {};
   if (first_name) updateData.first_name = first_name;
   if (last_name) updateData.last_name = last_name;
   if (phone_number) updateData.phone_number = phone_number;
-  if (address) updateData.address = address;
+
 
   userModel.updateUser(userId, updateData, (err, result) => {
     if (err) {
@@ -186,5 +182,5 @@ module.exports = {
   verifyEmail,
   login,
   getProfile,
-  updateProfile, 
+  updateProfile
 };

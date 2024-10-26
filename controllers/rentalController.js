@@ -1,59 +1,49 @@
 const rentalModel = require('../models/rentalModel');
-const itemModel = require('../models/itemsModel'); 
+const carModel = require('../models/carsModel'); 
 
-const calculatePrice = (startDate, endDate, basePrice, rentalDuration) => {
+const calculatePrice = (startDate, endDate, basePrice) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-
     const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)); 
-
-    let totalPrice = 0;
-    switch (rentalDuration) {
-        case 'daily':
-            totalPrice = basePrice * days;
-            break;
-        case 'weekly':
-            const weeks = Math.ceil(days / 7);
-            totalPrice = basePrice * weeks;
-            break;
-        case 'hourly':
-            const hours = days * 24;
-            totalPrice = basePrice * hours;
-            break;
-        default:
-            throw new Error('Invalid rental duration');
-    }
-
-    return totalPrice;
+    return (basePrice * days) + 25;
 };
 
-// Create rental
 exports.createRental = async (req, res) => {
-    const { item_id, renter_id, start_date, end_date, rental_duration, rental_method } = req.body;
+  console.log('Request Body:', req.body);
 
-    try {
-        const item = await itemModel.getItemById(item_id);
-        if (!item) return res.status(404).json({ message: 'Item not found' });
+  if (!req.body) {
+      return res.status(400).json({ message: 'Request body is missing' });
+  }
 
-        const price = calculatePrice(start_date, end_date, item.price, rental_duration);
+  const { Car_Id, renter_id, start_date, end_date, rental_method } = req.body;
 
-        const rentalData = {
-            item_id,
-            renter_id,
-            start_date,
-            end_date,
-            price,
-            rental_duration,
-            deposit_amount: item.deposit_amount || 0,
-            rental_method
-        };
+  try {
+      const car = await carModel.getCarById(Car_Id);
+      console.log('Fetched Car:', car); 
+      if (!car) return res.status(404).json({ message: 'Car not found' });
 
-        const result = await rentalModel.createRental(rentalData);
-        res.status(201).json({ message: 'Rental created successfully', rental_id: result.insertId });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error', error: err.message });
-    }
+      const rentalDuration = Math.ceil((new Date(end_date) - new Date(start_date)) / (1000 * 60 * 60 * 24));
+      const price = calculatePrice(start_date, end_date, car["Rent-Price"]);
+
+      const rentalData = {
+          "Car_Id": Car_Id, 
+          renter_id,
+          start_date,
+          end_date,
+          price,
+          rental_duration: rentalDuration,
+          deposit_amount: car.deposit_amount || 0,
+          rental_method,
+          rental_status: 'pending'
+      };
+
+      console.log('Rental Data:', rentalData); 
+      const result = await rentalModel.createRental(rentalData);
+      res.status(201).json({ message: 'Rental created successfully', rental_id: result.insertId });
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Server error', error: err.message });
+  }
 };
 
 exports.getRentalsByUser = async (req, res) => {
@@ -76,10 +66,30 @@ exports.updateRentalStatus = async (req, res) => {
     const { rentalId, status } = req.body;
 
     try {
-        await rentalModel.updateRentalStatus(rentalId, status);
+        await rentalModel.updateStatus(rentalId, status);
         res.status(200).json({ message: 'Rental status updated successfully' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });
     }
+};
+
+
+
+exports.submitReview = async (req, res) => {
+  const { rating, comment } = req.body; 
+  const user_id = req.user.id;
+  const role = req.user.role;
+  console.log(`role is ${role}`);
+  try {
+      if (rating < 1 || rating > 5) {
+          return res.status(400).json({ message: 'Rating must be between 1 and 5.' });
+      }
+
+      const result = await rentalModel.addReview(user_id, rating, comment);
+      res.status(201).json({ message: 'Review submitted successfully', review_id: result.insertId });
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Server error', error: err.message });
+  }
 };
