@@ -2,6 +2,11 @@ const { validationResult } = require('express-validator');
 const carsModel = require('../models/carsModel');
 
 const createCar = async (req, res) => {
+  if(!(req.user.role === 'user')){
+    return res.status(403).json({ message: 'You are not authorized to add a new car.' });
+  }
+
+  else{
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -19,9 +24,11 @@ const createCar = async (req, res) => {
     console.error('Error creating car:', err);
     return res.status(500).json({ message: 'Error adding car' });
   }
+}
 };
 
 const getAllCars = async (req, res) => {
+  
   try {
     const cars = await carsModel.getAllCars();
     return res.status(200).json(cars);
@@ -50,6 +57,10 @@ const getCarById = async (req, res) => {
 };
 
 const updateCar = async (req, res) => {
+  if(!(req.user.role === 'user')){
+    return res.status(403).json({ message: 'You are not authorized to update car.' });
+  }
+  else{
   const { id } = req.params;
 
   const errors = validationResult(req);
@@ -69,9 +80,14 @@ const updateCar = async (req, res) => {
     console.error('Error updating car:', err);
     return res.status(500).json({ message: 'Error updating car' });
   }
+}
 };
 
 const deleteCar = async (req, res) => {
+  if(!(req.user.role === 'user')){
+    return res.status(403).json({ message: 'You are not authorized to delete a car.' });
+  }
+  else{
   const { id } = req.params;
 
   try {
@@ -84,6 +100,7 @@ const deleteCar = async (req, res) => {
     console.error('Error deleting car:', err);
     return res.status(500).json({ message: 'Error deleting car' });
   }
+}
 };
 
 module.exports = {

@@ -63,6 +63,10 @@ exports.getRentalsByUser = async (req, res) => {
 };
 
 exports.updateRentalStatus = async (req, res) => {
+  if(!(req.user.role === 'user')){
+    return res.status(403).json({ message: 'You are not authorized to update status.' });
+  }
+  else{
     const { rentalId, status } = req.body;
 
     try {
@@ -72,15 +76,22 @@ exports.updateRentalStatus = async (req, res) => {
         console.error(err);
         res.status(500).json({ message: 'Server error' });
     }
+  }
 };
 
 
 
 exports.submitReview = async (req, res) => {
+
+  if(!(req.user.role === 'renter')){
+    return res.status(403).json({ message: 'You are not authorized to submit a review.' });
+  }
+
+  else{
   const { rating, comment } = req.body; 
   const user_id = req.user.id;
-  const role = req.user.role;
-  console.log(`role is ${role}`);
+  //const role = req.user.role;
+  //console.log(`role is ${role}`);
   try {
       if (rating < 1 || rating > 5) {
           return res.status(400).json({ message: 'Rating must be between 1 and 5.' });
@@ -92,4 +103,5 @@ exports.submitReview = async (req, res) => {
       console.error(err);
       res.status(500).json({ message: 'Server error', error: err.message });
   }
+}
 };

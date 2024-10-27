@@ -1,6 +1,12 @@
 const adminModel = require('../models/adminModel');
 
 exports.createLocation = async (req, res) => {
+
+  if(!(req.user.role === 'admin')){
+    return res.status(403).json({ message: 'You are not authorized to create a location.' });
+  }
+
+  else{
   const { latitude, longitude } = req.body;
 
   try {
@@ -10,9 +16,14 @@ exports.createLocation = async (req, res) => {
     console.error(err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
+}
 };
 
 exports.getLocations = async (req, res) => {
+  if(!(req.user.role === 'admin')){
+    return res.status(403).json({ message: 'You are not authorized to show all locations.' });
+  }
+  else{
   try {
     const locations = await adminModel.getAllLocations();
     res.status(200).json(locations);
@@ -20,10 +31,15 @@ exports.getLocations = async (req, res) => {
     console.error(err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
+}
 };
 
 
 exports.getAllReviews = async (req, res) => {
+  if(!(req.user.role === 'admin')){
+    return res.status(403).json({ message: 'You are not authorized to show all reviews.' });
+  }
+  else{
   try {
     const reviews = await adminModel.getAllReviews();
     res.status(200).json(reviews);
@@ -31,4 +47,5 @@ exports.getAllReviews = async (req, res) => {
     console.error('Error in getAllReviews:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
+}
 };
