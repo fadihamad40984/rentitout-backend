@@ -10,4 +10,9 @@ router.get('/locations', authenticateToken, adminController.getLocations);
 
 router.get('/reviews', authenticateToken, adminController.getAllReviews);
 
+
+router.get('/prices', adminController.getAllPrices);
+
+
+
 module.exports = router;

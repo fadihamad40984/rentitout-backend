@@ -95,11 +95,25 @@ const updateUser = (userId, updateData, callback) => {
   });
 };
 
+
+const getAllRenters = () => {
+  const query = 'SELECT first_name, last_name, email FROM users WHERE role = "renter"';
+  return new Promise((resolve, reject) => {
+    db.query(query, (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+};
+
+
+
 module.exports = {
   createUser,
   verifyUserByCode,
   findUserByEmail,
   isVerified,  
   findUserById,
-  updateUser
+  updateUser,
+  getAllRenters,
 };

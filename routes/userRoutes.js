@@ -41,4 +41,7 @@ router.put(
   userController.updateProfile 
 );
 
+router.get('/renters', userController.retrieveAllRenter);
+
+
 module.exports = router;

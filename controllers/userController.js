@@ -177,11 +177,23 @@ const updateProfile = (req, res) => {
   });
 };
 
+const retrieveAllRenter = async (req, res) => {
+  try {
+    const renters = await userModel.getAllRenters();
+    res.status(200).json(renters);
+  } catch (error) {
+    console.error('Error fetching renters:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
 
 module.exports = {
   register,
   verifyEmail,
   login,
   getProfile,
-  updateProfile
+  updateProfile,
+  retrieveAllRenter,
 };

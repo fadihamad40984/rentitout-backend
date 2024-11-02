@@ -46,3 +46,14 @@ exports.getAllReviews = () => {
     });
   });
 };
+
+exports.getAllprices = () => {
+  const query = 'SELECT rental_id , total_price FROM rental_prices';
+
+  return new Promise((resolve, reject) => {
+    db.query(query, (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+};

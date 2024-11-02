@@ -49,3 +49,13 @@ exports.getAllReviews = async (req, res) => {
   }
 }
 };
+
+exports.getAllPrices = async (req, res) => {
+  try {
+    const renters = await adminModel.getAllprices();
+    res.status(200).json(renters);
+  } catch (error) {
+    console.error('Error fetching renters:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
